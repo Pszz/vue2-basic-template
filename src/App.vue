@@ -1,34 +1,27 @@
 <template>
-  <main id="app" class="app-page">
-    <!-- 组件: 头部 -->
-    <m-header class="app-header"></m-header>
-
-    <!-- 内容 -->
-    <router-view class="app-content"></router-view>
-
-    <!-- 组件: 底部 -->
-    <m-footer class="app-footer"></m-footer>
-
+  <main id="main">
+    <!-- 组件：头部 -->
+    <m-header></m-header>
+    <!-- 内容路由 -->
+    <router-view/>
+    <!-- 组件：底部 -->
+    <m-footer></m-footer>
   </main>
-</template> 
+</template>
+
 <script>
-import '@assets/less/index.less'
-import MHeader from '@components/header.vue'
-import MFooter from '@components/footer.vue'
+// import 'element-ui/lib/theme-chalk/index.css'
+import MHeader from 'components/business/header'
+import MFooter from 'components/business/footer'
 export default {
-  name: 'App',
+  name: 'Main',
   components: {
     MHeader,
     MFooter
+  },
+  created () {
+    // 启动装载机
+    // this.$interrupt.registe(this.$ws)
   }
 }
 </script>
-
-<style lang="less" scoped>
-.app-content {
-  min-height: 90vh;
-  padding-top: 0.6rem;
-  position: relative;
-  z-index: 10;
-}
-</style>

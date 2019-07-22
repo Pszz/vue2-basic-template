@@ -1,45 +1,14 @@
-# website
+# Vue 2.x Template
 
-## Project setup
+## Setup
+
+```bash
+# install dependencies
+npm install
+
+# serve with hot reload at localhost:8080
+npm run dev
+
+# build for production with minification
+npm run build
 ```
-yarn install
-```
-
-### Compiles and hot-reloads for development
-```
-yarn run serve
-```
-
-### Compiles and minifies for production
-```
-yarn run build
-```
-
-### Run your tests
-```
-yarn run test
-```
-
-### Lints and fixes files
-```
-yarn run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
-
-
-
-## 结构介绍
-
-根目录 
-
-- public - 存放静态文件(vue-cli2 的static目录)
-- src - 项目核心文件
-  - assets  - 需要编译/打包/压缩的资源文件(css|less|scss...等，字体，图片)
-  - components - 全局组件
-  - config - vuex/store/filters/dirctive/ 等扩展配置
-  - libs - 第三方工具库
-  - views - 所有页面/子页面/子组件 
-  - main.js Vue初始入口
-  - App.vue  Vue初始化入口组件

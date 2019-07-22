@@ -8,21 +8,43 @@
   line-height: @h;
   height: @h;
 }
-// body 背景
-@body-bg: #f4f4f4;
-// 菜单，底部等背景
-@bg: #2c2c2c;
-// 按钮
-@bg-btn: #aaa;
-// 字体
-@color: #f99d1b;
-// 消息
-@err: #f56c6c;
-@warn: #e6a23c;
-@primary: #67c23a;
-// 渐变
-@bg-light: #ffc010;
-@bg-dark: #f9921e;
-// 可视最大宽度
-@max-width: 12rem;
-@max-ratio: 96%;
+// 动画
+.-anima(@name: anima, @duration: 1s, @timing: linear, @delay: 0s, @count: 1, @direction: normal, @state: running, @mode: none) {
+  //name 名称，duration 动画时长，timing 动画曲线时长，delay 动画之前的延迟，count 次数，direction 是否反向播放
+  //state 状态（运行态，暂停态） mode 是否保持最后一帧
+  animation: @name @duration @timing @delay @count @direction;
+  animation-play-state: @state; //
+  animation-fill-mode: @mode;
+
+  -webkit-animation: @name @duration @timing @delay @count @direction;
+  -webkit-animation-play-state: @state;
+  -webkit-animation-fill-mode: @mode;
+
+  -moz-animation: @name @duration @timing @delay @count @direction;
+  -moz-animation-play-state: @state;
+  -moz-animation-fill-mode: @mode;
+
+  -o-animation: @name @duration @timing @delay @count @direction;
+  -o-animation-play-state: @state;
+  -o-animation-fill-mode: @mode;
+
+  -ms-animation: @name @duration @timing @delay @count @direction;
+  -ms-animation-play-state: @state;
+  -ms-animation-fill-mode: @mode;
+}
+// 变形
+.-trans-form(@fn: initial) {
+  transform: @fn;
+  -webkit-transform: @fn;
+  -moz-transform: @fn;
+  -o-transform: @fn;
+  -ms-transform: @fn;
+}
+// 过渡函数
+.-trans(@value: all, @time: 1s, @linear: linear) {
+  transition: @value @time @linear;
+  -webkit-transition: @value @time @linear;
+  -moz-transition: @value @time @linear;
+  -o-transition: @value @time @linear;
+  -ms-transition: @value @time @linear;
+}
