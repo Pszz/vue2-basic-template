@@ -9,6 +9,8 @@
   <section class="home-page">
     <p>{{ name }}</p>
     <p>{{ desc }}</p>
+    <router-link to="/test">内嵌路由</router-link>
+    <router-view></router-view>
   </section>
 </template>
 

@@ -10,6 +10,7 @@ function handleRouterConfig (conf) {
   let path = '/' + conf.path
   let name = conf.name
   let meta = conf.meta
+  let hasChildren = Array.isArray(conf.children)
   let component = resolve => {
     if (conf.lazy) {
       return import('../../views/' + conf.component)
@@ -17,8 +18,7 @@ function handleRouterConfig (conf) {
     return require(['../../views/' + conf.component], resolve)
   }
   let route = { path, name, component, meta }
-
-  if (conf.children && conf.children instanceof Array) {
+  if (conf.children && hasChildren) {
     route.children = []
     for (let child of conf.children) {
       let childRoute = handleRouterConfig(child)
@@ -26,6 +26,9 @@ function handleRouterConfig (conf) {
         route.children.push(childRoute)
       }
     }
+  }
+  if (conf.children && !hasChildren) {
+    console.warn('Router children 格式必须为数组')
   }
   return route
 }
