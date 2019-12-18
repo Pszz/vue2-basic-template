@@ -1,30 +1,30 @@
-<!--
-    文件：src/views/home/index.vue
-    作者：Pi
-    时间：2019/07/22
-    描述：首页
--->
-
 <template>
-  <section class="home-page">
-    <p>{{ name }}</p>
-    <p>{{ desc }}</p>
-    <router-link to="/test">内嵌路由</router-link>
-    <router-view></router-view>
-  </section>
+  <div class="dashboard-container">
+    <div class="dashboard-text">name: {{ name }}</div>
+  </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+
 export default {
+  name: 'Home',
   computed: {
     ...mapGetters({
-      name: 'User/getName',
-      desc: 'User/getDesc'
+      name: 'user/getName'
     })
   }
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="scss" scoped>
+.dashboard {
+  &-container {
+    margin: 30px;
+  }
+  &-text {
+    font-size: 30px;
+    line-height: 46px;
+  }
+}
 </style>

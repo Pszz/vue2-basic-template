@@ -1,0 +1,9 @@
+.hover-txt {
+  cursor: pointer;
+  &:hover {
+    color: $menuActiveText;
+  }
+  &:active {
+    color: red;
+  }
+}
