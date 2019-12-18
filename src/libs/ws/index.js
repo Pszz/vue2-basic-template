@@ -1,7 +1,7 @@
 /**
-    文件：src/utils/wsclient.js
-    描述：WebSocket 请求库
-    作者：Pi 
+  文件：src/utils/wsclient.js
+  描述：WebSocket 请求库
+  作者：Pi 
 */
 
 class wsclient {
@@ -12,7 +12,8 @@ class wsclient {
   constructor (args = {}) {
     // WS 实例
     this.ws = null
-
+    // WS 状态(-1:未初始化、0：OPEN、1：OPEN、2：CLOSING、3：CLOSED)
+    this.state = -1
     // WS 地址
     this.orgin = args.orgin
     this.dst = args.dst || {}
@@ -33,9 +34,9 @@ class wsclient {
     this.initFunc = () => {}
 
     // 请求等待超时时间
-    this.requestTimeoutMs = 60 * 1000
+    this.requestTimeoutMs = 5 * 1000
 
-    // 心跳配置
+    // 心跳间隔、心跳发送时间、心跳返回时间
     this.hbIntervalMs = 5000
     this.hbSentMs = 0
     this.hbRecvMs = 0
@@ -44,7 +45,7 @@ class wsclient {
     this.interruptIntervalMs = 200
     this.interruptMs = 0
     this.commonMonErrcb = null
-
+    this.changeState = null
     /**
      * 检查执行条件
      * @param {*} msec
@@ -62,76 +63,129 @@ class wsclient {
      */
     this.doFunc = msec => {
       let ws = this.ws
-      let self = this
+      let ctx = this
       if (ws == null) {
-        let url =
-          (location.protocol === 'https:' ? 'wss://' : 'wss://') +
-          this.orgin.replace(/\/$/, '')
-        let query = Object.keys(this.dst)
-          .map(v => {
-            return `${v}=${this.dst[v]}`
-          })
-          .join('&')
-        url = url + (query ? '?' + query : '')
-        ws = new WebSocket(url)
-        ws.onopen = evt => {
-          self.initFunc()
+        // 还在启动中
+        if (ctx.state === WebSocket.CONNECTING) {
+          return false
         }
-        ws.onmessage = evt => {
-          self.message(evt)
-        }
-        ws.onerror = evt => {
-          console.error('WS异常：', evt)
-        }
-        ws.onclose = evt => {
-          console.error('WS关闭')
-        }
-        self.ws = ws
-        self.hbRecvMs = msec
+        ctx.initWebSocket(ctx.orgin, ctx.dst).then(_ws => {
+          _ws.onmessage = evt => {
+            ctx.message(evt)
+          }
+          _ws.onerror = evt => {
+            console.error('WS异常：', evt)
+          }
+          _ws.onclose = evt => {
+            console.error('WS关闭')
+          }
+          ctx.ws = _ws
+        })
+        return false
       }
-
+      // 监听状态变化
+      if (ws.readyState !== ctx.state) {
+        ctx.state = ws.readyState
+        if (typeof ctx.changeState === 'function') {
+          ctx.changeState(ctx.state)
+        }
+      }
       switch (ws.readyState) {
         case WebSocket.CONNECTING: // 正在请求中，未完成连接
           break
         case WebSocket.OPEN: // 连接已打开
           // 1. 检查请求超时
-          Object.keys(this.reqMaps).forEach(v => {
-            let realval = this.reqMaps[v]
-            if (realval.now + this.requestTimeoutMs < msec) {
-              let callback = this.reqMaps[v].callback
-              delete this.reqMaps[v]
-              // typeof callback === 'function' && callback(null) // 超时也是要回调的，但是传空
+          for (let n in ctx.reqMaps) {
+            let realval = ctx.reqMaps[n]
+            if (realval.now + ctx.requestTimeoutMs < msec) {
+              let callbackFunc = realval.callback
+              console.log('请求超时:', n)
+              typeof callbackFunc === 'function' && callbackFunc({ err: 0 })
+              delete ctx.reqMaps[n]
             }
-          })
-
+          }
           // 2. 处理写超时
-          if (this.hbSentMs + this.hbIntervalMs < msec) {
-            this.hbSentMs = msec
-            this.send(this.heartCmd, this.heartParams)
+          if (ctx.hbSentMs + ctx.hbIntervalMs < msec) {
+            ctx.hbSentMs = msec
+            ctx.send(ctx.heartCmd, ctx.heartParams)
           }
 
           // 3. 处理读超时
-          if (this.hbRecvMs + this.hbIntervalMs * 2.5 < msec) {
-            this.close()
+          if (ctx.hbRecvMs + ctx.hbIntervalMs * 2.5 < msec) {
+            ctx.close()
             break
           }
 
           // 4. pendding
-          this.penddingReqs.forEach(v => {
-            this.request(v.cmd, v.callback, v.params, v.chk)
+          ctx.penddingReqs.forEach(v => {
+            ctx.request(v.cmd, v.callback, v.params, v.chk)
           })
-          this.penddingReqs = []
+          ctx.penddingReqs = []
 
           break
         case WebSocket.CLOSING: // 连接正在关闭
           break
         default:
           // 连接已关闭
-          this.ws = null
+          ctx.ws = null
           break
       }
-      return this
+      return ctx
     }
+  }
+  /**
+   * WebSocket 初始化
+   * @param { String, Array } url WebSockets 地址||地址集
+   * @param { Object } dst 初始化参数
+   */
+  initWebSocket (url, dst) {
+    return new Promise((resolve, reject) => {
+      let ctx = this
+      let query = [] // 请求参数
+      let queue = [] // 请求队列
+      // WS 已经启动
+      if (this.ws) {
+        return resolve(this.ws)
+      }
+      if (!url || !url.length) {
+        return reject(new Error('url is empty'))
+      }
+      // 参数拼接
+      for (let n in dst) {
+        query.push(n + '=' + dst[n])
+      }
+      query = query.length ? '?' + query.join('&') : ''
+      // 初始化参数
+      ctx.hbRecvMs = Date.now()
+      ctx.state = 0
+
+      // 多地址集合
+      if (Array.isArray(url)) {
+        url.forEach(v => {
+          start(v + query)
+        })
+      } else {
+        start(url + query)
+      }
+      function start (src) {
+        let ws = new WebSocket(src)
+        queue.push(ws)
+        ws.onopen = evt => {
+          // 已经有实例启动了,关闭请求
+          if (ctx.ws) {
+            ws.close()
+            return false
+          }
+          queue.forEach(v => {
+            if (ws !== v) {
+              v.close()
+            }
+          })
+          ctx.initFunc()
+          resolve(ws)
+        }
+      }
+    })
   }
   /**
    * 添加WS创建时调用函数
@@ -184,6 +238,13 @@ class wsclient {
    */
   setCommonMonErrcb (cb) {
     this.commonMonErrcb = cb
+  }
+  /**
+   * 状态变更回调函数
+   * @param { Function } cb 回调函数
+   */
+  setChangeState (cb) {
+    this.changeState = cb
   }
   /**
    * 更改心跳参数
@@ -252,8 +313,10 @@ class wsclient {
     let callback
     if (data.chk) {
       // 再处理回复
-      callback = this.reqMaps[data.chk].callback
-      delete this.reqMaps[data.chk]
+      if (this.reqMaps[data.chk]) {
+        callback = this.reqMaps[data.chk].callback
+        delete this.reqMaps[data.chk]
+      }
     } else {
       // 再处理推送回调
       callback = this.subMaps[data.cmd]

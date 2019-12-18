@@ -23,11 +23,11 @@ export default {
 
 <style lang="less" scoped>
 .layer-footer {
-  height: 3.84rem;
+  height: 384px;
   color: #fff;
   background-color: @bg;
   overflow: hidden;
-  padding: 0.3rem 0;
+  padding: 30px 0;
   .max-width {
     margin: 0 auto;
     display: flex;

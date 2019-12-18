@@ -27,10 +27,10 @@ export default {
   top: 0;
   z-index: 999;
   width: 100%;
-  height: 0.6rem;
+  height: 60px;
   background-color: @bg;
   color: #fff;
-  font-size: 0.18rem;
+  font-size: 18px;
   .max-width {
     height: 100%;
     margin: 0 auto;
