@@ -1,7 +1,7 @@
 {
   "start_url": "/",
-  "name": "BITUS",
-  "short_name": "BITUS",
+  "name": "VUE-X-TEMPLATE",
+  "short_name": "VUE-X-TEMPLATE",
   "icons": [
     {
       "src": "./icons/android-chrome-82x82.png",

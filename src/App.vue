@@ -27,7 +27,7 @@ export default {
 <style lang="less" scoped>
 .app-content {
   min-height: 90vh;
-  padding-top: 0.6rem;
+  padding-top: 60px;
   position: relative;
   z-index: 10;
 }
